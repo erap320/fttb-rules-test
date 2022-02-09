@@ -19,7 +19,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.app.ApplicationService;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.*;
@@ -41,9 +40,6 @@ import java.util.concurrent.CompletableFuture;
 public class AppComponent implements SomeInterface {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected ComponentConfigService cfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FlowRuleService flowRuleService;
@@ -87,8 +83,6 @@ public class AppComponent implements SomeInterface {
     private FlowRule[] rules;
 
     private byte[] dpuMac = {0x2e, 0xa, 0x0, 0x1, 0x0, 0x0};
-
-    private FlowRule other;
 
     private CompletableFuture<Object> createMeter(){
         CompletableFuture<Object> meterFuture = new CompletableFuture<>();
@@ -435,11 +429,6 @@ public class AppComponent implements SomeInterface {
     @Modified
     public void modified(ComponentContext context) {
         log.info("Reconfigured");
-    }
-
-    @Override
-    public void someMethod() {
-        log.info("Invoked");
     }
 
 }

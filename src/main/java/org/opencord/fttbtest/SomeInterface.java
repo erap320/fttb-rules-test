@@ -17,6 +17,4 @@ package org.opencord.fttbtest;
 
 public interface SomeInterface {
 
-    void someMethod();
-
 }
