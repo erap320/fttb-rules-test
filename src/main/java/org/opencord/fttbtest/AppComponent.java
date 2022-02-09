@@ -134,13 +134,14 @@ public class AppComponent implements SomeInterface {
 
     private void createRulesWithMeter(MeterId meterId)
     {
-        rules = new FlowRule[10];
+        rules = new FlowRule[14];
 
         ///// DHCP trap rule #1
         {
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchInPort(UNI)
                     .matchVlanId(VlanId.vlanId((short) 6))
+                    .matchVlanPcp((byte)3)
                     .matchEthType((short) 0x0800)
                     .matchIPProtocol((byte) 17)
                     .matchUdpSrc(TpPort.tpPort(68))
@@ -149,9 +150,10 @@ public class AppComponent implements SomeInterface {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .immediate()
                     .setOutput(PortNumber.CONTROLLER)
+                    .setVlanId(VlanId.vlanId((short) 60))
+                    .setVlanPcp((byte)7)
                     .writeMetadata(createTechProfValueForWriteMetadata(VlanId.vlanId((short) 60), TECH_PROFILE, meterId), 0)
                     .meter(meterId)
-                    .setVlanId(VlanId.vlanId((short) 60))
                     .build();
 
             rules[0] = DefaultFlowRule.builder()
@@ -191,7 +193,7 @@ public class AppComponent implements SomeInterface {
                     .build();
         }
 
-        ///// DPU-MGMT and ANCP switching Upstream #1
+        ///// DPU-MGMT switching Upstream #1
         {
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchInPort(UNI)
@@ -219,11 +221,11 @@ public class AppComponent implements SomeInterface {
                     .build();
         }
 
-        ///// DPU-MGMT and ANCP switching Upstream #2
+        ///// DPU-MGMT switching Upstream #2
         {
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchInPort(UNI)
-                    .matchVlanId(VlanId.vlanId((short)6))
+                    .matchVlanId(VlanId.vlanId((short)60))
                     .matchEthSrc(MacAddress.valueOf(dpuMac))
                     .build();
 
@@ -245,11 +247,11 @@ public class AppComponent implements SomeInterface {
                     .build();
         }
 
-        ///// DPU-MGMT and ANCP switching Downstream #1
+        ///// DPU-MGMT switching Downstream #1
         {
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchInPort(NNI)
-                    .matchVlanId(VlanId.vlanId((short)6))
+                    .matchVlanId(VlanId.vlanId((short)60))
                     .matchEthDst(MacAddress.valueOf(dpuMac))
                     .build();
 
@@ -271,11 +273,117 @@ public class AppComponent implements SomeInterface {
                     .build();
         }
 
-        ///// DPU-MGMT and ANCP switching Downstream #2
+        ///// DPU-MGMT switching Downstream #2
         {
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchInPort(NNI)
-                    .matchVlanId(VlanId.vlanId((short)6))
+                    .matchVlanId(VlanId.vlanId((short)60))
+                    .matchEthDst(MacAddress.valueOf(dpuMac))
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .immediate()
+                    .setVlanId(VlanId.vlanId((short)6))
+                    .setOutput(UNI)
+                    .writeMetadata(createMetadata(VlanId.vlanId((short)4096), TECH_PROFILE, UNI), 0)
+                    .meter(meterId)
+                    .build();
+
+            rules[5] = DefaultFlowRule.builder()
+                    .makePermanent()
+                    .withPriority(1000)
+                    .forTable(1)
+                    .forDevice(DeviceId.deviceId("of:00000a0a0a0a0a0a"))
+                    .fromApp(applicationService.getId("org.opencord.olt"))
+                    .withSelector(selector)
+                    .withTreatment(treatment)
+                    .build();
+        }
+
+        ///// ANCP switching Upstream #1
+        {
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchInPort(UNI)
+                    .matchVlanId(VlanId.vlanId((short)4))
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .immediate()
+                    .setVlanId(VlanId.vlanId((short)40))
+                    .setVlanPcp((byte)7)
+                    .writeMetadata(createMetadata(VlanId.vlanId((short)0), TECH_PROFILE, NNI), 0)
+                    .meter(meterId)
+                    .transition(1)
+                    .build();
+
+            rules[6] = DefaultFlowRule.builder()
+                    .makePermanent()
+                    .withPriority(1000)
+                    .forTable(0)
+                    .forDevice(DeviceId.deviceId("of:00000a0a0a0a0a0a"))
+                    .fromApp(applicationService.getId("org.opencord.olt"))
+                    .withSelector(selector)
+                    .withTreatment(treatment)
+                    .build();
+        }
+
+        ///// ANCP switching Upstream #2
+        {
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchInPort(UNI)
+                    .matchVlanId(VlanId.vlanId((short)40))
+                    .matchEthSrc(MacAddress.valueOf(dpuMac))
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .immediate()
+                    .setOutput(NNI)
+                    .writeMetadata(createMetadata(VlanId.vlanId((short)0), TECH_PROFILE, PortNumber.portNumber(0)), 0)
+                    .meter(meterId)
+                    .build();
+
+            rules[7] = DefaultFlowRule.builder()
+                    .makePermanent()
+                    .withPriority(1000)
+                    .forTable(1)
+                    .forDevice(DeviceId.deviceId("of:00000a0a0a0a0a0a"))
+                    .fromApp(applicationService.getId("org.opencord.olt"))
+                    .withSelector(selector)
+                    .withTreatment(treatment)
+                    .build();
+        }
+
+        ///// ANCP switching Downstream #1
+        {
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchInPort(NNI)
+                    .matchVlanId(VlanId.vlanId((short)40))
+                    .matchEthDst(MacAddress.valueOf(dpuMac))
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .immediate()
+                    .writeMetadata(createMetadata(VlanId.vlanId((short)4096), TECH_PROFILE, UNI), 0)
+                    .meter(meterId)
+                    .transition(1)
+                    .build();
+
+            rules[8] = DefaultFlowRule.builder()
+                    .makePermanent()
+                    .withPriority(1000)
+                    .forTable(0)
+                    .forDevice(DeviceId.deviceId("of:00000a0a0a0a0a0a"))
+                    .fromApp(applicationService.getId("org.opencord.olt"))
+                    .withSelector(selector)
+                    .withTreatment(treatment)
+                    .build();
+        }
+
+        ///// ANCP switching Downstream #2
+        {
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchInPort(NNI)
+                    .matchVlanId(VlanId.vlanId((short)40))
                     .matchEthDst(MacAddress.valueOf(dpuMac))
                     .build();
 
@@ -287,7 +395,7 @@ public class AppComponent implements SomeInterface {
                     .meter(meterId)
                     .build();
 
-            rules[5] = DefaultFlowRule.builder()
+            rules[9] = DefaultFlowRule.builder()
                     .makePermanent()
                     .withPriority(1000)
                     .forTable(1)
@@ -312,7 +420,7 @@ public class AppComponent implements SomeInterface {
                     .transition(1)
                     .build();
 
-            rules[6] = DefaultFlowRule.builder()
+            rules[10] = DefaultFlowRule.builder()
                     .makePermanent()
                     .withPriority(1000)
                     .forTable(0)
@@ -338,7 +446,7 @@ public class AppComponent implements SomeInterface {
                     .meter(meterId)
                     .build();
 
-            rules[7] = DefaultFlowRule.builder()
+            rules[11] = DefaultFlowRule.builder()
                     .makePermanent()
                     .withPriority(1000)
                     .forTable(1)
@@ -364,7 +472,7 @@ public class AppComponent implements SomeInterface {
                     .transition(1)
                     .build();
 
-            rules[8] = DefaultFlowRule.builder()
+            rules[12] = DefaultFlowRule.builder()
                     .makePermanent()
                     .withPriority(1000)
                     .forTable(0)
@@ -390,7 +498,7 @@ public class AppComponent implements SomeInterface {
                     .meter(meterId)
                     .build();
 
-            rules[9] = DefaultFlowRule.builder()
+            rules[13] = DefaultFlowRule.builder()
                     .makePermanent()
                     .withPriority(1000)
                     .forTable(1)
@@ -416,13 +524,13 @@ public class AppComponent implements SomeInterface {
 
             createRulesWithMeter((MeterId) meter.meterCellId());
 
-            flowRuleService.applyFlowRules(rules[1], rules[2]);
+            flowRuleService.applyFlowRules(rules[0], rules[1]);
         });
     }
 
     @Deactivate
     protected void deactivate() {
-        flowRuleService.removeFlowRules(rules[1], rules[2]);
+        flowRuleService.removeFlowRules(rules[0], rules[1]);
         log.info("FTTB test stopped");
     }
 
