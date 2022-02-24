@@ -524,13 +524,13 @@ public class AppComponent implements SomeInterface {
 
             createRulesWithMeter((MeterId) meter.meterCellId());
 
-            flowRuleService.applyFlowRules(rules[0], rules[1]);
+            flowRuleService.applyFlowRules(rules);
         });
     }
 
     @Deactivate
     protected void deactivate() {
-        flowRuleService.removeFlowRules(rules[0], rules[1]);
+        flowRuleService.removeFlowRules(rules);
         log.info("FTTB test stopped");
     }
 
