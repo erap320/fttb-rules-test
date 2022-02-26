@@ -257,7 +257,7 @@ public class AppComponent implements SomeInterface {
 
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .immediate()
-                    .writeMetadata(createMetadata(VlanId.vlanId((short)4096), TECH_PROFILE, UNI), 0)
+                    .writeMetadata(createMetadata(VlanId.vlanId((short)0), TECH_PROFILE, UNI), 0)
                     .meter(meterId)
                     .transition(1)
                     .build();
@@ -285,7 +285,7 @@ public class AppComponent implements SomeInterface {
                     .immediate()
                     .setVlanId(VlanId.vlanId((short)6))
                     .setOutput(UNI)
-                    .writeMetadata(createMetadata(VlanId.vlanId((short)4096), TECH_PROFILE, UNI), 0)
+                    .writeMetadata(createMetadata(VlanId.vlanId((short)0), TECH_PROFILE, UNI), 0)
                     .meter(meterId)
                     .build();
 
@@ -363,7 +363,7 @@ public class AppComponent implements SomeInterface {
 
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .immediate()
-                    .writeMetadata(createMetadata(VlanId.vlanId((short)4096), TECH_PROFILE, UNI), 0)
+                    .writeMetadata(createMetadata(VlanId.vlanId((short)0), TECH_PROFILE, UNI), 0)
                     .meter(meterId)
                     .transition(1)
                     .build();
@@ -415,7 +415,7 @@ public class AppComponent implements SomeInterface {
 
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .immediate()
-                    .writeMetadata(createMetadata(VlanId.vlanId((short)0), TECH_PROFILE, NNI), 0)
+                    .writeMetadata(createMetadata(VlanId.vlanId((short)4096), TECH_PROFILE, NNI), 0)
                     .meter(meterId)
                     .transition(1)
                     .build();
@@ -442,7 +442,7 @@ public class AppComponent implements SomeInterface {
                     .immediate()
                     .setVlanId(VlanId.vlanId((short)3101))
                     .setOutput(NNI)
-                    .writeMetadata(createMetadata(VlanId.vlanId((short)0), TECH_PROFILE, PortNumber.portNumber(0)), 0)
+                    .writeMetadata(createMetadata(VlanId.vlanId((short)4096), TECH_PROFILE, PortNumber.portNumber(0)), 0)
                     .meter(meterId)
                     .build();
 
@@ -494,7 +494,7 @@ public class AppComponent implements SomeInterface {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .immediate()
                     .setOutput(UNI)
-                    .writeMetadata(createMetadata(VlanId.vlanId((short)0), TECH_PROFILE, PortNumber.portNumber(0)), 0)
+                    .writeMetadata(createMetadata(VlanId.vlanId((short)4096), TECH_PROFILE, PortNumber.portNumber(0)), 0)
                     .meter(meterId)
                     .build();
 
